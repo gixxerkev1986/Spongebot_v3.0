@@ -5,6 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
 import asyncio
+import httpx
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)8s] %(name)s: %(message)s')
@@ -33,11 +34,45 @@ async def ping(interaction: discord.Interaction):
     logger.info("/ping ontvangen")
     await interaction.response.send_message("Pong! Spongebot leeft.")
 
-@tree.command(name="analyse", description="Mock analyse van een coin", guild=discord.Object(id=GUILD_ID))
+@tree.command(name="analyse", description="AI technische analyse van een coin", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(coin="Bijv. kaspa, fet, link")
 async def analyse(interaction: discord.Interaction, coin: str):
-    logger.info(f"/analyse ontvangen voor {coin}")
-    await interaction.response.send_message(f"Mock analyse voor {coin.upper()}: RSI 47, lichte bullish trend.")
+    logger.info(f"/analyse gestart voor: {coin}")
+    try:
+        await interaction.response.defer()
+    except Exception as e:
+        logger.warning(f"Kon interaction.defer() niet uitvoeren: {e}")
+
+    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "deepseek/deepseek-chat-v3-0324:free",
+        "messages": [
+            {
+                "role": "user",
+                "content": f"Geef een korte technische analyse van de coin {coin.upper()}, met een inschatting van de trend, RSI, volume en een potentieel instapmoment."
+            }
+        ]
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+            logger.info(f"OpenRouter status: {response.status_code}")
+            logger.debug(f"OpenRouter response: {response.text}")
+
+            if response.status_code == 200:
+                result = response.json()
+                analyse_tekst = result["choices"][0]["message"]["content"]
+                await interaction.followup.send(f"AI-analyse voor {coin.upper()}:\n\n{analyse_tekst}")
+            else:
+                await interaction.followup.send("Er ging iets mis met de AI-analyse.")
+    except Exception as e:
+        logger.exception("Fout bij AI-aanvraag")
+        await interaction.followup.send("Er ging iets fout tijdens het ophalen van de analyse.")
 
 @tree.command(name="trending", description="Mock lijst met trending coins", guild=discord.Object(id=GUILD_ID))
 async def trending(interaction: discord.Interaction):
