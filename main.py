@@ -19,7 +19,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD_ID = int(os.getenv("GUILD_ID"))
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-# Bot setup
+# Discord bot setup
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
