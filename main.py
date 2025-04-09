@@ -24,10 +24,13 @@ tree = bot.tree
 async def on_ready():
     logger.info(f"Bot is online als {bot.user}")
     try:
-        synced = await tree.sync(guild=discord.Object(id=GUILD_ID))
-        logger.info(f"Slash commands gesynchroniseerd ({len(synced)}): {[cmd.name for cmd in synced]}")
+        # Forceer zowel globale als guild-specifieke sync
+        global_synced = await tree.sync()
+        logger.info(f"✅ Globale slash commands: {[cmd.name for cmd in global_synced]}")
+        guild_synced = await tree.sync(guild=discord.Object(id=GUILD_ID))
+        logger.info(f"✅ Guild slash commands ({GUILD_ID}): {[cmd.name for cmd in guild_synced]}")
     except Exception as e:
-        logger.error(f"Fout bij slash sync: {e}")
+        logger.error(f"❌ Fout bij slash sync: {e}")
     
     await load_cogs()
 
