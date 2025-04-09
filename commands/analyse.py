@@ -11,7 +11,6 @@ logger = logging.getLogger("spongebot")
 
 API_URL = "http://spongebot.hopto.org:5050/api/crypto/"
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
-GUILD_ID = int(os.getenv("GUILD_ID"))
 
 class Analyse(commands.Cog):
     def __init__(self, bot):
@@ -19,7 +18,7 @@ class Analyse(commands.Cog):
 
     @app_commands.command(name="analyse", description="Voer een multi-timeframe analyse uit")
     @app_commands.describe(coin="Bijvoorbeeld BTC, FET, KAS")
-    @app_commands.guilds(discord.Object(id=GUILD_ID))
+    @app_commands.guilds(discord.Object(id=1356894863454376105))
     async def analyse(self, interaction: discord.Interaction, coin: str):
         await interaction.response.defer()
         symbol = coin.upper() + "USDT"
