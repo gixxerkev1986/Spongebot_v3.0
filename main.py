@@ -6,8 +6,8 @@ from discord import app_commands
 from dotenv import load_dotenv
 import asyncio
 
-# Logging setup
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)8s] %(name)s: %(message)s')
+# Setup logging
+logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] [%(levelname)8s] %(name)s: %(message)s')
 logger = logging.getLogger("spongebot")
 
 # Load environment variables
@@ -22,30 +22,41 @@ tree = bot.tree
 
 @bot.event
 async def on_ready():
-    logger.info(f"Bot is online als {bot.user}")
+    logger.info(f"Spongebot is online als {bot.user}")
     try:
-        # Forceer zowel globale als guild-specifieke sync
-        global_synced = await tree.sync()
-        logger.info(f"✅ Globale slash commands: {[cmd.name for cmd in global_synced]}")
-        guild_synced = await tree.sync(guild=discord.Object(id=GUILD_ID))
-        logger.info(f"✅ Guild slash commands ({GUILD_ID}): {[cmd.name for cmd in guild_synced]}")
+        synced = await tree.sync(guild=discord.Object(id=GUILD_ID))
+        logger.info(f"Slash commands gesynchroniseerd: {[cmd.name for cmd in synced]}")
     except Exception as e:
-        logger.error(f"❌ Fout bij slash sync: {e}")
-    
-    await load_cogs()
+        logger.error(f"Fout bij syncen van commands: {e}")
 
-async def load_cogs():
-    cogs = ["ping", "trending", "addcoin", "statustradesim", "analyse"]
-    for cog in cogs:
-        try:
-            await bot.load_extension(f"commands.{cog}")
-            logger.info(f"✅ Module geladen: {cog}.py")
-        except Exception as e:
-            logger.error(f"❌ Fout bij laden {cog}.py: {e}")
+# Commands hieronder
 
-async def main():
-    async with bot:
-        await bot.start(TOKEN)
+@tree.command(name="ping", description="Test of de bot werkt.", guild=discord.Object(id=GUILD_ID))
+async def ping(interaction: discord.Interaction):
+    logger.info("/ping ontvangen")
+    await interaction.response.send_message("Pong!")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+@tree.command(name="analyse", description="Mock analyse van coin", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Bijv. KAS, BTC, FET")
+async def analyse(interaction: discord.Interaction, coin: str):
+    logger.info(f"/analyse ontvangen voor: {coin}")
+    await interaction.response.send_message(f"Mock analyse voor {coin.upper()}...\n(TA komt eraan!)")
+
+@tree.command(name="trending", description="Toon mock trending coins", guild=discord.Object(id=GUILD_ID))
+async def trending(interaction: discord.Interaction):
+    logger.info("/trending ontvangen")
+    await interaction.response.send_message("Trending coins (mock): KAS, FET, SOL")
+
+@tree.command(name="addcoin", description="Voeg coin toe aan portfolio (mock)", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Coin naam (bv. KAS)")
+async def addcoin(interaction: discord.Interaction, coin: str):
+    logger.info(f"/addcoin ontvangen voor: {coin}")
+    await interaction.response.send_message(f"{coin.upper()} is toegevoegd aan je mock portfolio!")
+
+@tree.command(name="statustradesim", description="Toon mock tradesimulatie status", guild=discord.Object(id=GUILD_ID))
+async def statustradesim(interaction: discord.Interaction):
+    logger.info("/statustradesim ontvangen")
+    await interaction.response.send_message("Gesimuleerde trades:\n+12% winst op KAS\n-4% verlies op BTC")
+
+# Start de bot
+bot.run(TOKEN)
