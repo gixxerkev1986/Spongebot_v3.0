@@ -19,6 +19,7 @@ class Analyse(commands.Cog):
 
     @app_commands.command(name="analyse", description="Voer een multi-timeframe analyse uit")
     @app_commands.describe(coin="Bijvoorbeeld BTC, FET, KAS")
+    @app_commands.guilds(discord.Object(id=GUILD_ID))
     async def analyse(self, interaction: discord.Interaction, coin: str):
         await interaction.response.defer()
         symbol = coin.upper() + "USDT"
