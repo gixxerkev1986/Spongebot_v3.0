@@ -64,8 +64,9 @@ async def status(interaction: discord.Interaction):
 async def analyse(interaction: discord.Interaction, coin: str):
     await interaction.response.defer()
     try:
+        symbol = f"{coin.upper()}USDT"
         async with httpx.AsyncClient(timeout=15.0) as client:
-            response = await client.get(f"http://spongebot.hopto.org:5050/api/crypto/{coin.upper()}/1d")
+            response = await client.get(f"http://spongebot.hopto.org:5050/api/crypto/{symbol}/1d")
             if response.status_code == 200:
                 data = response.json()
                 if not data or "close" not in data:
@@ -78,7 +79,7 @@ async def analyse(interaction: discord.Interaction, coin: str):
                 trend = "⬆️ Uptrend" if ema20 > ema50 else "⬇️ Downtrend" if ema20 < ema50 else "➡️ Zijwaarts"
                 advies = "⚠️ RSI signaal: OVERKOCHT" if rsi > 70 else "✅ RSI signaal: OVERSOLD" if rsi < 30 else "Neutral"
 
-                embed = discord.Embed(title=f"Technische Analyse voor {coin.upper()}", color=0x00ffcc)
+                embed = discord.Embed(title=f"Technische Analyse voor {symbol}", color=0x00ffcc)
                 embed.add_field(name="Slotprijs", value=f"${close:.2f}", inline=True)
                 embed.add_field(name="RSI (14)", value=f"{rsi:.2f}", inline=True)
                 embed.add_field(name="Trend", value=trend, inline=False)
