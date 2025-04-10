@@ -41,7 +41,7 @@ status_overzicht = {
     "trending": "🟡 Mock actief, trending coins module volgt",
     "heatmap": "⚪️ Nog niet gestart, bij sterke beweging",
     "dominantie": "⚪️ Nog niet gestart, marktdominantieanalyse",
-    "airdrop": "⚪️ Gepland, met suggesties & verwachte winst",
+    "airdrop": "🟢 Actief met handleidingen & inschatting",
     "brugtip": "⚪️ Gepland, bruggen naar layer 2’s",
     "ping": "🟢 Actief",
     "status": "🟢 Overzicht werkend",
@@ -57,7 +57,7 @@ async def on_ready():
     except Exception as e:
         logger.error(f"Fout bij syncen van commands: {e}")
 
-# Werkende en mock commando's
+# Commands
 
 @tree.command(name="ping", description="Test of de bot werkt", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
@@ -140,9 +140,86 @@ async def heatmap(interaction: discord.Interaction):
 async def dominantie(interaction: discord.Interaction):
     await interaction.response.send_message("Mock: BTC dominantie 53.2%, ETH 17.4%")
 
-@tree.command(name="airdrop", description="Suggesties voor airdrops", guild=discord.Object(id=GUILD_ID))
+@tree.command(name="airdrop", description="Overzicht van actuele airdrops + winstinschatting", guild=discord.Object(id=GUILD_ID))
 async def airdrop(interaction: discord.Interaction):
-    await interaction.response.send_message("Mock: Check LayerZero, ZKSync, en Eigenlayer!")
+    embed = discord.Embed(
+        title="🪂 Airdrop Radar – april 2025",
+        description="Claim gratis crypto met deze top 5 airdrops! Hieronder vind je *acties, kans en potentiële opbrengst* per project.",
+        color=0x00ffcc
+    )
+
+    embed.add_field(
+        name="1. **LayerZero (ZRO)**",
+        value=(
+            "📅 **Status**: Verwacht in Q2 2025\n"
+            "⚙️ **Wat te doen**:\n"
+            "› Gebruik [Stargate](https://stargate.finance/transfer) om ETH/USDT te bridgen\n"
+            "› Herhaal 1x/week – kleine transacties\n"
+            "› Claim OmniNFT’s via [OmniZone](https://omnizone.io)\n"
+            "📈 **Kans**: **Zeer hoog**\n"
+            "💰 **Inschatting**: €300 – €2.000"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="2. **zkSync (ZKS)**",
+        value=(
+            "📅 **Status**: Snapshot nog niet genomen\n"
+            "⚙️ **Wat te doen**:\n"
+            "› Bridge via [zkSync Portal](https://portal.zksync.io/)\n"
+            "› Swappen op [SyncSwap](https://syncswap.xyz) of [Mute.io](https://app.mute.io)\n"
+            "› Gebruik meerdere dApps voor interactie\n"
+            "📈 **Kans**: **Hoog**\n"
+            "💰 **Inschatting**: €150 – €1.200"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="3. **Blast (BLAST)**",
+        value=(
+            "📅 **Status**: Puntensysteem loopt\n"
+            "⚙️ **Wat te doen**:\n"
+            "› Bridge ETH/USDB naar [blast.io](https://blast.io)\n"
+            "› Gebruik dApps zoals Pacmoon of Juice\n"
+            "› Verzamel automatisch punten = toekomstige tokens\n"
+            "📈 **Kans**: **Zeker** (bevestigd)\n"
+            "💰 **Inschatting**: €250 – €1.000 (afhankelijk van punten)"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="4. **Scroll**",
+        value=(
+            "📅 **Status**: Mainnet live, snapshot verwacht\n"
+            "⚙️ **Wat te doen**:\n"
+            "› Bridge via [scroll.io](https://scroll.io/bridge)\n"
+            "› Swappen op DEX zoals [SyncSwap](https://syncswap.xyz)\n"
+            "› Test andere apps of NFT’s\n"
+            "📈 **Kans**: **Hoog**\n"
+            "💰 **Inschatting**: €100 – €800"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="5. **EigenLayer (restaking)**",
+        value=(
+            "📅 **Status**: Pre-launch fase\n"
+            "⚙️ **Wat te doen**:\n"
+            "› Restake ETH via [KelpDAO](https://app.kelpdao.xyz) of [EtherFi](https://etherfi.com)\n"
+            "› Verdien punten = claimpositie voor token\n"
+            "📈 **Kans**: **Zeer hoog**\n"
+            "💰 **Inschatting**: €500 – €2.500 (afhankelijk van inzet)"
+        ),
+        inline=False
+    )
+
+    embed.set_footer(text="Tip: gebruik meerdere wallets voor hogere kans (MetaMask, Rabby, Argent...)")
+
+    await interaction.response.send_message(embed=embed)
 
 @tree.command(name="brugtip", description="Brugsuggesties voor nieuwe chains", guild=discord.Object(id=GUILD_ID))
 async def brugtip(interaction: discord.Interaction):
