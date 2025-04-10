@@ -6,6 +6,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 import asyncio
 import requests
+import httpx
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)8s] %(name)s: %(message)s')
@@ -15,6 +16,7 @@ logger = logging.getLogger("spongebot")
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD_ID = int(os.getenv("GUILD_ID"))
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # Discord bot setup
 intents = discord.Intents.default()
@@ -26,16 +28,7 @@ status_overzicht = {
     "analyse": "🟢 Werkt met echte TA + AI",
     "airdrop": "🟢 Live via DeFiLlama API",
     "status": "🟢 Overzicht werkend",
-    "ping": "🟢 Actief",
-    "claimcheck": "⚪️ Gepland",
-    "walletscan": "⚪️ Gepland",
-    "airdrops": "⚪️ Gepland",
-    "accustrategie": "⚪️ Gepland",
-    "simulate": "⚪️ Gepland",
-    "setbudget": "⚪️ Gepland",
-    "exitplan": "⚪️ Gepland",
-    "whalealert": "⚪️ Gepland",
-    "fibonacci": "⚪️ Gepland"
+    "ping": "🟢 Actief"
 }
 
 @bot.event
@@ -63,59 +56,82 @@ async def status(interaction: discord.Interaction):
 async def analyse(interaction: discord.Interaction, coin: str):
     try:
         await interaction.response.defer()
+        symbol = coin.upper() + "USDT"
         timeframes = ["5m", "15m", "1h", "1d"]
-        analyses = []
-        instap_count = 0
-        uitstap_count = 0
+        resultaten = []
 
         for tf in timeframes:
-            url = f"http://spongebot.hopto.org:5050/api/crypto/{coin.upper()}USDT/{tf}"
-            try:
-                res = requests.get(url, timeout=10)
-                res.raise_for_status()
-                data = res.json()
-                candles = data.get("result", [])
-                if not candles or len(candles) < 1:
-                    raise ValueError("Geen data")
+            url = f"http://spongebot.hopto.org:5050/api/crypto/{symbol}/{tf}"
+            r = requests.get(url)
+            bron = "Binance"
 
-                laatste = candles[-1]
-                rsi = laatste["rsi"]
-                ema20 = laatste["ema20"]
-                ema50 = laatste["ema50"]
-                prijs = laatste["close"]
+            if r.status_code != 200 or "result" not in r.json():
+                # fallback
+                url = f"http://spongebot.hopto.org:5050/api/fallback/{coin.upper()}/{tf}"
+                r = requests.get(url)
+                bron = "CoinGecko"
 
-                trend = "⏸️ Zijwaarts"
-                if ema20 > ema50:
-                    trend = "📈 Uptrend"
-                elif ema20 < ema50:
-                    trend = "📉 Downtrend"
+            if r.status_code != 200:
+                raise Exception("Geen data voor analyse")
 
-                advies = "⚪️ Houden"
-                if rsi < 30:
-                    advies = "🟢 DCA instap"
-                    instap_count += 1
-                elif rsi > 70:
-                    advies = "🔴 Mogelijk uitstapmoment"
-                    uitstap_count += 1
+            data = r.json()
+            laatste = data["result"][-1]
+            prijs = laatste["close"]
+            rsi = laatste["rsi"]
+            ema20 = laatste["ema20"]
+            ema50 = laatste["ema50"]
 
-                analyses.append(f"**{tf}**: prijs ${prijs:.2f} — RSI: {rsi:.1f} — {trend} — {advies}")
-            except Exception as e:
-                analyses.append(f"**{tf}**: ⚠️ Geen data beschikbaar")
+            trend = "📈 Uptrend" if ema20 > ema50 else "📉 Downtrend"
+            advies = "🟢 DCA instap" if rsi < 30 else ("⚪️ Houden" if rsi < 70 else "🔴 Exit zone")
 
-        samenvatting = f"🔍 **Analyse voor** `{coin.upper()}`\n\n" + "\n".join(analyses) + "\n\n"
+            resultaten.append({
+                "tf": tf,
+                "prijs": prijs,
+                "rsi": rsi,
+                "trend": trend,
+                "advies": advies,
+                "bron": bron
+            })
 
-        if instap_count >= 2:
-            conclusie = "💡 **Conclusie**: Potentieel *DCA instapmoment* over meerdere timeframes."
-        elif uitstap_count >= 2:
-            conclusie = "💡 **Conclusie**: Mogelijk *uitstapmoment* over meerdere timeframes."
-        else:
-            conclusie = "💡 **Conclusie**: Geen duidelijk signaal — afwachten of trend volgen."
+        output = f"🔍 Analyse voor: `{coin.upper()}`\n\n"
+        for r in resultaten:
+            output += (
+                f"⏱️ {r['tf']}  \n"
+                f"• Prijs: `${r['prijs']:,}`  \n"
+                f"• RSI: {r['rsi']:.1f}  \n"
+                f"• Trend: {r['trend']}  \n"
+                f"• Advies: {r['advies']}  \n"
+                f"• Bron: {r['bron']}  \n\n"
+            )
 
-        await interaction.followup.send(samenvatting + conclusie)
+        prompt = f"Geef een korte en duidelijke samenvatting van deze analyse (coin: {coin}):\n"
+        for r in resultaten:
+            prompt += f"{r['tf']}: prijs {r['prijs']}, rsi {r['rsi']:.1f}, trend {r['trend']}, advies {r['advies']}. "
+
+        # AI-samenvatting via OpenRouter
+        ai_tekst = ""
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "deepseek/deepseek-chat-v3-0324:free",
+            "messages": [{"role": "user", "content": prompt}]
+        }
+
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            res = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+            if res.status_code == 200:
+                ai_tekst = res.json()["choices"][0]["message"]["content"]
+            else:
+                ai_tekst = "_AI-samenvatting niet beschikbaar._"
+
+        output += f"🧠 **AI Samenvatting**:\n{ai_tekst}"
+        await interaction.followup.send(output)
 
     except Exception as e:
         logger.error(f"Fout bij analyse: {e}")
-        await interaction.followup.send("❌ Er ging iets mis tijdens de analyse.")
+        await interaction.followup.send("Er ging iets mis tijdens de analyse.")
 
 @tree.command(name="airdrop", description="Live overzicht van potentiële airdrops (DeFiLlama)", guild=discord.Object(id=GUILD_ID))
 async def airdrop(interaction: discord.Interaction):
