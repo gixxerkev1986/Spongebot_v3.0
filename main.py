@@ -6,7 +6,6 @@ from discord import app_commands
 from dotenv import load_dotenv
 import asyncio
 import requests
-import httpx
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)8s] %(name)s: %(message)s')
@@ -62,35 +61,39 @@ async def status(interaction: discord.Interaction):
 @tree.command(name="analyse", description="Voer technische analyse uit", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(coin="Bijv. BTC, KAS, FET...")
 async def analyse(interaction: discord.Interaction, coin: str):
+    await interaction.response.defer()
     try:
         symbol = f"{coin.upper()}USDT"
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            response = await client.get(f"http://spongebot.hopto.org:5050/api/crypto/{symbol}/1d")
-            if response.status_code == 200:
-                data = response.json()
-                if not data or "close" not in data:
-                    raise ValueError("Geen geldige TA-data ontvangen.")
-                close = data["close"][-1]
-                rsi = data["rsi"][-1]
-                ema20 = data["ema20"][-1]
-                ema50 = data["ema50"][-1]
+        url = f"http://spongebot.hopto.org:5050/api/crypto/{symbol}/1d"
+        res = requests.get(url, timeout=10)
+        data = res.json()
+        logger.debug(f"Analyse API response: {data}")
+        latest = data.get("result", [])[-1] if data.get("result") else None
 
-                trend = "⬆️ Uptrend" if ema20 > ema50 else "⬇️ Downtrend" if ema20 < ema50 else "➡️ Zijwaarts"
-                advies = "⚠️ RSI signaal: OVERKOCHT" if rsi > 70 else "✅ RSI signaal: OVERSOLD" if rsi < 30 else "Neutral"
+        if latest is None:
+            raise ValueError("Geen analysegegevens ontvangen.")
 
-                embed = discord.Embed(title=f"Technische Analyse voor {symbol}", color=0x00ffcc)
-                embed.add_field(name="Slotprijs", value=f"${close:.2f}", inline=True)
-                embed.add_field(name="RSI (14)", value=f"{rsi:.2f}", inline=True)
-                embed.add_field(name="Trend", value=trend, inline=False)
-                embed.add_field(name="Advies", value=advies, inline=False)
-                embed.set_footer(text="Bron: Binance API via Spongebot TA-server")
+        close = float(latest.get("close", 0))
+        rsi = float(latest.get("rsi", 0))
+        ema20 = float(latest.get("ema20", 0))
+        ema50 = float(latest.get("ema50", 0))
 
-                await interaction.response.send_message(embed=embed)
-            else:
-                await interaction.response.send_message(f"Er ging iets mis bij het ophalen van data voor {coin.upper()}.")
+        trend = "📈 Opwaarts" if ema20 > ema50 else "📉 Neerwaarts" if ema20 < ema50 else "➡️ Zijwaarts"
+        advies = "Kans op herstel" if rsi < 40 else "Oververhit" if rsi > 70 else "Neutraal"
+
+        response = (
+            f"**Technische Analyse – {coin.upper()} (1D)**\n"
+            f"• Sluitprijs: ${close:,.2f}\n"
+            f"• RSI: {rsi:.2f}\n"
+            f"• EMA20: {ema20:.2f}\n"
+            f"• EMA50: {ema50:.2f}\n"
+            f"• Trend: {trend}\n"
+            f"**Advies:** {advies}"
+        )
+        await interaction.followup.send(response)
     except Exception as e:
         logger.error(f"Fout bij analyse: {e}")
-        await interaction.response.send_message("Fout bij analyse ophalen.")
+        await interaction.followup.send("Er ging iets mis bij het ophalen van de analyse.")
 
 @tree.command(name="airdrop", description="Live overzicht van potentiële airdrops (DeFiLlama)", guild=discord.Object(id=GUILD_ID))
 async def airdrop(interaction: discord.Interaction):
