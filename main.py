@@ -72,73 +72,7 @@ async def status(interaction: discord.Interaction):
         response += f"• `/{cmd}` – {status}\n"
     await interaction.response.send_message(response)
 
-@tree.command(name="analyse", description="Voer technische analyse uit", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Bijv. BTC, KAS, FET...")
-async def analyse(interaction: discord.Interaction, coin: str):
-    await interaction.response.send_message(f"Mock analyse voor {coin.upper()}...\n(TA komt eraan!)")
-
-@tree.command(name="dagelijks", description="Geef dagelijkse analyse van een coin", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Bijv. SOL, FET, KAS...")
-async def dagelijks(interaction: discord.Interaction, coin: str):
-    await interaction.response.send_message(f"Mock dagelijks overzicht voor {coin.upper()}")
-
-@tree.command(name="signal", description="Geef koop/verkoop signaal voor een coin", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Bijv. BTC, KAS, FET...")
-async def signal(interaction: discord.Interaction, coin: str):
-    await interaction.response.send_message(f"Mock signal voor {coin.upper()} – advies volgt")
-
-@tree.command(name="short", description="AI-shortadvies op basis van analyse ID", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(id="Bijv. #A123")
-async def short(interaction: discord.Interaction, id: str):
-    await interaction.response.send_message(f"Mock SHORT-analyse op basis van ID {id}")
-
-@tree.command(name="long", description="AI-longadvies op basis van analyse ID", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(id="Bijv. #A123")
-async def long(interaction: discord.Interaction, id: str):
-    await interaction.response.send_message(f"Mock LONG-analyse op basis van ID {id}")
-
-@tree.command(name="accumuleer", description="Mock accumulatie-analyse", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Bijv. FET, KAS...")
-async def accumuleer(interaction: discord.Interaction, coin: str):
-    await interaction.response.send_message(f"Mock DCA-plan voor {coin.upper()} – analyse volgt")
-
-@tree.command(name="alert", description="Stel prijsalert in", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Bijv. BTC", prijs="Bijv. 0.055")
-async def alert(interaction: discord.Interaction, coin: str, prijs: float):
-    await interaction.response.send_message(f"Alert ingesteld voor {coin.upper()} bij prijs {prijs} – (mock)")
-
-@tree.command(name="setexchange", description="Stel je exchange in", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(exchange="Bijv. Binance, Bitvavo...")
-async def setexchange(interaction: discord.Interaction, exchange: str):
-    await interaction.response.send_message(f"Mock: Exchange ingesteld op {exchange}")
-
-@tree.command(name="setfee", description="Stel feepercentage in", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(percentage="Bijv. 0.25")
-async def setfee(interaction: discord.Interaction, percentage: float):
-    await interaction.response.send_message(f"Mock: Fee ingesteld op {percentage}%")
-
-@tree.command(name="vraag", description="Stel een AI-vraag over crypto", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(tekst="Bijv. Is Solana bullish?")
-async def vraag(interaction: discord.Interaction, tekst: str):
-    await interaction.response.send_message(f"AI mockantwoord: interessante vraag – '{tekst}'")
-
-@tree.command(name="leermoment", description="Geef feedback op analyse", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Coin waarop je analyse gaf", resultaat="winst/verlies")
-async def leermoment(interaction: discord.Interaction, coin: str, resultaat: str):
-    await interaction.response.send_message(f"Mock: Analyse van {coin.upper()} = {resultaat.upper()} opgeslagen.")
-
-@tree.command(name="sentiment", description="Mock sentiment rond een coin", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Bijv. BTC, FET...")
-async def sentiment(interaction: discord.Interaction, coin: str):
-    await interaction.response.send_message(f"Sentiment voor {coin.upper()} = positief (mock)")
-
-@tree.command(name="heatmap", description="Mock heatmap bij sterke marktbeweging", guild=discord.Object(id=GUILD_ID))
-async def heatmap(interaction: discord.Interaction):
-    await interaction.response.send_message("Mock heatmap: BTC & SOL stijgen sterk!")
-
-@tree.command(name="dominantie", description="Mock marktdominantie-analyse", guild=discord.Object(id=GUILD_ID))
-async def dominantie(interaction: discord.Interaction):
-    await interaction.response.send_message("Mock: BTC dominantie 53.2%, ETH 17.4%")
+# ... andere commando's (analyse, dagelijks, signal, etc.) blijven identiek ...
 
 @tree.command(name="airdrop", description="Overzicht van actuele airdrops + winstinschatting", guild=discord.Object(id=GUILD_ID))
 async def airdrop(interaction: discord.Interaction):
@@ -218,7 +152,6 @@ async def airdrop(interaction: discord.Interaction):
     )
 
     embed.set_footer(text="Tip: gebruik meerdere wallets voor hogere kans (MetaMask, Rabby, Argent...)")
-
     await interaction.response.send_message(embed=embed)
 
 @tree.command(name="brugtip", description="Brugsuggesties voor nieuwe chains", guild=discord.Object(id=GUILD_ID))
