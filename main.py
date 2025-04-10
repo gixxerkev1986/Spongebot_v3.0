@@ -62,7 +62,6 @@ async def status(interaction: discord.Interaction):
 @tree.command(name="analyse", description="Voer technische analyse uit", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(coin="Bijv. BTC, KAS, FET...")
 async def analyse(interaction: discord.Interaction, coin: str):
-    await interaction.response.defer()
     try:
         symbol = f"{coin.upper()}USDT"
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -86,12 +85,12 @@ async def analyse(interaction: discord.Interaction, coin: str):
                 embed.add_field(name="Advies", value=advies, inline=False)
                 embed.set_footer(text="Bron: Binance API via Spongebot TA-server")
 
-                await interaction.followup.send(embed=embed)
+                await interaction.response.send_message(embed=embed)
             else:
-                await interaction.followup.send(f"Er ging iets mis bij het ophalen van data voor {coin.upper()}.")
+                await interaction.response.send_message(f"Er ging iets mis bij het ophalen van data voor {coin.upper()}.")
     except Exception as e:
         logger.error(f"Fout bij analyse: {e}")
-        await interaction.followup.send("Fout bij analyse ophalen.")
+        await interaction.response.send_message("Fout bij analyse ophalen.")
 
 @tree.command(name="airdrop", description="Live overzicht van potentiële airdrops (DeFiLlama)", guild=discord.Object(id=GUILD_ID))
 async def airdrop(interaction: discord.Interaction):
