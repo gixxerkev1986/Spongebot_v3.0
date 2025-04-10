@@ -66,7 +66,7 @@ async def on_ready():
     except Exception as e:
         logger.error(f"Fout bij syncen van commands: {e}")
 
-# Voorbeeldcommando's
+# Commands
 
 @tree.command(name="ping", description="Test of de bot werkt", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
@@ -96,74 +96,87 @@ async def airdrop(interaction: discord.Interaction):
         name="1. **LayerZero (ZRO)**",
         value=(
             "📅 **Status**: Verwacht in Q2 2025\n"
-            "⚙️ **Wat te doen**:\n"
-            "› Gebruik [Stargate](https://stargate.finance/transfer)\n"
-            "› Herhaal 1x/week – kleine transacties\n"
-            "› Claim OmniNFT’s via [OmniZone](https://omnizone.io)\n"
-            "📈 **Kans**: **Zeer hoog**\n"
-            "💰 **Inschatting**: €300 – €2.000"
+            "⚙️ Gebruik [Stargate](https://stargate.finance/transfer)\n"
+            "📈 **Kans**: Zeer hoog\n"
+            "💰 **Opbrengst**: €300 – €2.000"
         ), inline=False)
-
     embed.add_field(
         name="2. **zkSync (ZKS)**",
         value=(
-            "📅 **Status**: Snapshot nog niet genomen\n"
-            "⚙️ **Wat te doen**:\n"
-            "› Bridge via [zkSync Portal](https://portal.zksync.io/)\n"
-            "› Gebruik [SyncSwap](https://syncswap.xyz) of [Mute.io](https://app.mute.io)\n"
-            "📈 **Kans**: **Hoog**\n"
-            "💰 **Inschatting**: €150 – €1.200"
+            "📅 **Status**: Snapshot verwacht\n"
+            "⚙️ Bridge naar [zkSync Portal](https://portal.zksync.io/)\n"
+            "📈 **Kans**: Hoog\n"
+            "💰 **Opbrengst**: €150 – €1.200"
         ), inline=False)
-
     embed.add_field(
         name="3. **Blast (BLAST)**",
         value=(
             "📅 **Status**: Puntensysteem actief\n"
-            "⚙️ **Wat te doen**:\n"
-            "› Bridge ETH/USDB naar [blast.io](https://blast.io)\n"
-            "› Gebruik dApps zoals Pacmoon of Juice\n"
-            "📈 **Kans**: **Zeker** (bevestigd)\n"
-            "💰 **Inschatting**: €250 – €1.000"
+            "⚙️ Gebruik [blast.io](https://blast.io)\n"
+            "📈 **Kans**: Zeker\n"
+            "💰 **Opbrengst**: €250 – €1.000"
         ), inline=False)
-
     embed.add_field(
         name="4. **Scroll**",
         value=(
-            "📅 **Status**: Mainnet live, snapshot verwacht\n"
-            "⚙️ **Wat te doen**:\n"
-            "› Gebruik [scroll.io/bridge](https://scroll.io/bridge)\n"
-            "› Swappen op [SyncSwap](https://syncswap.xyz)\n"
-            "📈 **Kans**: **Hoog**\n"
-            "💰 **Inschatting**: €100 – €800"
+            "📅 **Status**: Snapshot mogelijk in aantocht\n"
+            "⚙️ Bridge via [scroll.io](https://scroll.io/bridge)\n"
+            "📈 **Kans**: Hoog\n"
+            "💰 **Opbrengst**: €100 – €800"
         ), inline=False)
-
     embed.add_field(
-        name="5. **EigenLayer (restaking)**",
+        name="5. **EigenLayer**",
         value=(
-            "📅 **Status**: Pre-launch fase\n"
-            "⚙️ **Wat te doen**:\n"
-            "› Restake via [KelpDAO](https://app.kelpdao.xyz) of [EtherFi](https://etherfi.com)\n"
-            "📈 **Kans**: **Zeer hoog**\n"
-            "💰 **Inschatting**: €500 – €2.500"
+            "📅 **Status**: Restaking live\n"
+            "⚙️ Gebruik [KelpDAO](https://app.kelpdao.xyz) of [EtherFi](https://etherfi.com)\n"
+            "📈 **Kans**: Zeer hoog\n"
+            "💰 **Opbrengst**: €500 – €2.500"
         ), inline=False)
 
-    embed.set_footer(text="Tip: gebruik meerdere wallets voor hogere kans (MetaMask, Rabby, Argent...)")
+    embed.set_footer(text="Gebruik meerdere wallets voor hogere kansen. Meer via /claimcheck binnenkort.")
     await interaction.response.send_message(embed=embed)
 
 @tree.command(name="brugtip", description="Brugsuggestie voor nieuwe chains", guild=discord.Object(id=GUILD_ID))
 async def brugtip(interaction: discord.Interaction):
     await interaction.response.send_message("Mock: Brug van Ethereum naar Base via Orbiter.Finance")
 
-# Mock commands voor roadmap
-mock_commands = [
-    "claimcheck", "walletscan", "airdrops", "accustrategie",
-    "simulate", "setbudget", "exitplan", "whalealert", "fibonacci"
-]
+# Roadmap mock commands (correct zonder fout)
 
-for cmd in mock_commands:
-    @tree.command(name=cmd, description=f"Mock: {cmd} functionaliteit", guild=discord.Object(id=GUILD_ID))
-    async def mock_command(interaction: discord.Interaction, cmd=cmd):
-        await interaction.response.send_message(f"Mock: `{cmd}` is nog in ontwikkeling en wordt later geactiveerd.")
+@tree.command(name="claimcheck", description="Mock: controleer of je airdrop kunt claimen", guild=discord.Object(id=GUILD_ID))
+async def claimcheck(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/claimcheck` is nog in ontwikkeling.")
+
+@tree.command(name="walletscan", description="Mock: analyseer je wallet op eligibility", guild=discord.Object(id=GUILD_ID))
+async def walletscan(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/walletscan` is nog in ontwikkeling.")
+
+@tree.command(name="airdrops", description="Mock: alternatief overzicht van airdrops", guild=discord.Object(id=GUILD_ID))
+async def airdrops(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/airdrops` is nog in ontwikkeling.")
+
+@tree.command(name="accustrategie", description="Mock: geavanceerde DCA-strategie", guild=discord.Object(id=GUILD_ID))
+async def accustrategie(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/accustrategie` is nog in ontwikkeling.")
+
+@tree.command(name="simulate", description="Mock: trade simulatie met fees en winst", guild=discord.Object(id=GUILD_ID))
+async def simulate(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/simulate` is nog in ontwikkeling.")
+
+@tree.command(name="setbudget", description="Mock: instellen van DCA-budget per coin", guild=discord.Object(id=GUILD_ID))
+async def setbudget(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/setbudget` is nog in ontwikkeling.")
+
+@tree.command(name="exitplan", description="Mock: uitstapstrategie per coin", guild=discord.Object(id=GUILD_ID))
+async def exitplan(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/exitplan` is nog in ontwikkeling.")
+
+@tree.command(name="whalealert", description="Mock: melding bij grote transacties", guild=discord.Object(id=GUILD_ID))
+async def whalealert(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/whalealert` is nog in ontwikkeling.")
+
+@tree.command(name="fibonacci", description="Mock: fib retracement zones genereren", guild=discord.Object(id=GUILD_ID))
+async def fibonacci(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: `/fibonacci` is nog in ontwikkeling.")
 
 # Start de bot
 async def main():
