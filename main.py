@@ -57,7 +57,7 @@ async def on_ready():
     except Exception as e:
         logger.error(f"Fout bij syncen van commands: {e}")
 
-# Commands
+# Commando's
 
 @tree.command(name="ping", description="Test of de bot werkt", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
@@ -72,7 +72,10 @@ async def status(interaction: discord.Interaction):
         response += f"• `/{cmd}` – {status}\n"
     await interaction.response.send_message(response)
 
-# ... andere commando's (analyse, dagelijks, signal, etc.) blijven identiek ...
+@tree.command(name="analyse", description="Voer technische analyse uit", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Bijv. BTC, KAS, FET...")
+async def analyse(interaction: discord.Interaction, coin: str):
+    await interaction.response.send_message(f"Mock analyse voor {coin.upper()}...\n(TA komt eraan!)")
 
 @tree.command(name="airdrop", description="Overzicht van actuele airdrops + winstinschatting", guild=discord.Object(id=GUILD_ID))
 async def airdrop(interaction: discord.Interaction):
