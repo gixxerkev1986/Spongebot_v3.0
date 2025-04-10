@@ -61,39 +61,61 @@ async def status(interaction: discord.Interaction):
 @tree.command(name="analyse", description="Voer technische analyse uit", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(coin="Bijv. BTC, KAS, FET...")
 async def analyse(interaction: discord.Interaction, coin: str):
-    await interaction.response.defer()
     try:
-        symbol = f"{coin.upper()}USDT"
-        url = f"http://spongebot.hopto.org:5050/api/crypto/{symbol}/1d"
-        res = requests.get(url, timeout=10)
-        data = res.json()
-        logger.debug(f"Analyse API response: {data}")
-        latest = data.get("result", [])[-1] if data.get("result") else None
+        await interaction.response.defer()
+        timeframes = ["5m", "15m", "1h", "1d"]
+        analyses = []
+        instap_count = 0
+        uitstap_count = 0
 
-        if latest is None:
-            raise ValueError("Geen analysegegevens ontvangen.")
+        for tf in timeframes:
+            url = f"http://spongebot.hopto.org:5050/api/crypto/{coin.upper()}USDT/{tf}"
+            try:
+                res = requests.get(url, timeout=10)
+                res.raise_for_status()
+                data = res.json()
+                candles = data.get("result", [])
+                if not candles or len(candles) < 1:
+                    raise ValueError("Geen data")
 
-        close = float(latest.get("close", 0))
-        rsi = float(latest.get("rsi", 0))
-        ema20 = float(latest.get("ema20", 0))
-        ema50 = float(latest.get("ema50", 0))
+                laatste = candles[-1]
+                rsi = laatste["rsi"]
+                ema20 = laatste["ema20"]
+                ema50 = laatste["ema50"]
+                prijs = laatste["close"]
 
-        trend = "📈 Opwaarts" if ema20 > ema50 else "📉 Neerwaarts" if ema20 < ema50 else "➡️ Zijwaarts"
-        advies = "Kans op herstel" if rsi < 40 else "Oververhit" if rsi > 70 else "Neutraal"
+                trend = "⏸️ Zijwaarts"
+                if ema20 > ema50:
+                    trend = "📈 Uptrend"
+                elif ema20 < ema50:
+                    trend = "📉 Downtrend"
 
-        response = (
-            f"**Technische Analyse – {coin.upper()} (1D)**\n"
-            f"• Sluitprijs: ${close:,.2f}\n"
-            f"• RSI: {rsi:.2f}\n"
-            f"• EMA20: {ema20:.2f}\n"
-            f"• EMA50: {ema50:.2f}\n"
-            f"• Trend: {trend}\n"
-            f"**Advies:** {advies}"
-        )
-        await interaction.followup.send(response)
+                advies = "⚪️ Houden"
+                if rsi < 30:
+                    advies = "🟢 DCA instap"
+                    instap_count += 1
+                elif rsi > 70:
+                    advies = "🔴 Mogelijk uitstapmoment"
+                    uitstap_count += 1
+
+                analyses.append(f"**{tf}**: prijs ${prijs:.2f} — RSI: {rsi:.1f} — {trend} — {advies}")
+            except Exception as e:
+                analyses.append(f"**{tf}**: ⚠️ Geen data beschikbaar")
+
+        samenvatting = f"🔍 **Analyse voor** `{coin.upper()}`\n\n" + "\n".join(analyses) + "\n\n"
+
+        if instap_count >= 2:
+            conclusie = "💡 **Conclusie**: Potentieel *DCA instapmoment* over meerdere timeframes."
+        elif uitstap_count >= 2:
+            conclusie = "💡 **Conclusie**: Mogelijk *uitstapmoment* over meerdere timeframes."
+        else:
+            conclusie = "💡 **Conclusie**: Geen duidelijk signaal — afwachten of trend volgen."
+
+        await interaction.followup.send(samenvatting + conclusie)
+
     except Exception as e:
         logger.error(f"Fout bij analyse: {e}")
-        await interaction.followup.send("Er ging iets mis bij het ophalen van de analyse.")
+        await interaction.followup.send("❌ Er ging iets mis tijdens de analyse.")
 
 @tree.command(name="airdrop", description="Live overzicht van potentiële airdrops (DeFiLlama)", guild=discord.Object(id=GUILD_ID))
 async def airdrop(interaction: discord.Interaction):
