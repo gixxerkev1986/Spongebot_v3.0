@@ -5,113 +5,152 @@ from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
 import asyncio
-import httpx
-import datetime
-import uuid
 
 # Setup logging
-logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] [%(levelname)8s] %(name)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)8s] %(name)s: %(message)s')
 logger = logging.getLogger("spongebot")
 
-# Load env vars
+# Load environment variables
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD_ID = int(os.getenv("GUILD_ID"))
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # Discord bot setup
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 
+# Status dictionary
+status_overzicht = {
+    "analyse": "🟢 Werkt met echte TA + AI",
+    "dagelijks": "🟡 Mock actief, TA integratie volgt",
+    "signal": "🟡 Mock actief, RSI/EMA advies gepland",
+    "short": "🟡 AI mock, later op basis van /analyse ID",
+    "long": "🟡 AI mock, later op basis van /analyse ID",
+    "accumuleer": "🟡 Mock actief, DCA-strategie in ontwikkeling",
+    "alert": "🟡 Mock actief, prijsalerts worden gebouwd",
+    "addcoin": "🟡 Mock actief, coinregistratie komt eraan",
+    "statustradesim": "🟡 Mock actief, winstmarge overzicht later",
+    "setexchange": "⚪️ Nog bouwen, exchange-specifiek systeem",
+    "setfee": "⚪️ Nog bouwen, fee % per exchange/user",
+    "vraag": "🟡 Mock via OpenRouter, AI live integratie volgt",
+    "leermoment": "🟡 Mock actief, feedback-opslag gepland",
+    "voorspeltest": "🟢 Beschikbaar in Kulleke structuur",
+    "models": "🟢 Modelkeuze werkend via OpenRouter",
+    "sentiment": "🟡 Mock actief, CoinGecko sentiment later",
+    "trending": "🟡 Mock actief, trending coins module volgt",
+    "heatmap": "⚪️ Nog niet gestart, bij sterke beweging",
+    "dominantie": "⚪️ Nog niet gestart, marktdominantieanalyse",
+    "airdrop": "⚪️ Gepland, met suggesties & verwachte winst",
+    "brugtip": "⚪️ Gepland, bruggen naar layer 2’s",
+    "ping": "🟢 Actief",
+    "status": "🟢 Overzicht werkend",
+    "api-server": "🟡 Lokale TA-API draait, Binance live binnenkort"
+}
+
 @bot.event
 async def on_ready():
-    logger.info(f"Spongebot is online als {bot.user}")
+    logger.info(f"Bot is online als {bot.user}")
     try:
         synced = await tree.sync(guild=discord.Object(id=GUILD_ID))
-        logger.info(f"Slash commands gesynchroniseerd: {[cmd.name for cmd in synced]}")
+        logger.info(f"Slash commands gesynchroniseerd ({len(synced)}): {[cmd.name for cmd in synced]}")
     except Exception as e:
-        logger.error(f"Fout bij slash sync: {e}")
+        logger.error(f"Fout bij syncen van commands: {e}")
 
-# -----------------------
-# Slash commands
-# -----------------------
+# Werkende en mock commando's
 
-@tree.command(name="ping", description="Test of de bot werkt.", guild=discord.Object(id=GUILD_ID))
+@tree.command(name="ping", description="Test of de bot werkt", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
     logger.info("/ping ontvangen")
     await interaction.response.send_message("Pong!")
 
-@tree.command(name="trending", description="Toon mock trending coins", guild=discord.Object(id=GUILD_ID))
-async def trending(interaction: discord.Interaction):
-    logger.info("/trending ontvangen")
-    await interaction.response.send_message("Trending coins (mock): KAS, FET, SOL")
+@tree.command(name="status", description="Toon de huidige status van Spongebot", guild=discord.Object(id=GUILD_ID))
+async def status(interaction: discord.Interaction):
+    logger.info("/status ontvangen")
+    response = "**Spongebot v2.1 Statusoverzicht**\n\n"
+    for cmd, status in status_overzicht.items():
+        response += f"• `/{cmd}` – {status}\n"
+    await interaction.response.send_message(response)
 
-@tree.command(name="addcoin", description="Voeg coin toe aan portfolio (mock)", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Coin naam (bv. KAS)")
-async def addcoin(interaction: discord.Interaction, coin: str):
-    logger.info(f"/addcoin ontvangen voor: {coin}")
-    await interaction.response.send_message(f"{coin.upper()} is toegevoegd aan je mock portfolio!")
-
-@tree.command(name="statustradesim", description="Toon mock tradesimulatie status", guild=discord.Object(id=GUILD_ID))
-async def statustradesim(interaction: discord.Interaction):
-    logger.info("/statustradesim ontvangen")
-    await interaction.response.send_message("Gesimuleerde trades:\n+12% winst op KAS\n-4% verlies op BTC")
-
-@tree.command(name="analyse", description="Voer een multi-timeframe TA-analyse uit", guild=discord.Object(id=GUILD_ID))
-@app_commands.describe(coin="Bijvoorbeeld BTC, FET, KAS")
+@tree.command(name="analyse", description="Voer technische analyse uit", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Bijv. BTC, KAS, FET...")
 async def analyse(interaction: discord.Interaction, coin: str):
-    await interaction.response.defer()
+    await interaction.response.send_message(f"Mock analyse voor {coin.upper()}...\n(TA komt eraan!)")
 
-    symbol = coin.upper() + "USDT"
-    timeframes = ["5m", "15m", "1h", "1d"]
-    results = {}
-    API_URL = "http://spongebot.hopto.org:5050/api/crypto/"
+@tree.command(name="dagelijks", description="Geef dagelijkse analyse van een coin", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Bijv. SOL, FET, KAS...")
+async def dagelijks(interaction: discord.Interaction, coin: str):
+    await interaction.response.send_message(f"Mock dagelijks overzicht voor {coin.upper()}")
 
-    async with httpx.AsyncClient(timeout=10) as client:
-        for tf in timeframes:
-            try:
-                url = f"{API_URL}{symbol}/{tf}"
-                logger.debug(f"TA request: {url}")
-                r = await client.get(url)
-                data = r.json()
-                results[tf] = data
-            except Exception as e:
-                logger.warning(f"TA-fout voor {tf}: {e}")
-                results[tf] = {"error": "geen data"}
+@tree.command(name="signal", description="Geef koop/verkoop signaal voor een coin", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Bijv. BTC, KAS, FET...")
+async def signal(interaction: discord.Interaction, coin: str):
+    await interaction.response.send_message(f"Mock signal voor {coin.upper()} – advies volgt")
 
-    # Bouw samenvatting
-    ta_text = f"**Analyse voor {symbol} ({datetime.datetime.now().strftime('%d-%m-%Y')})**\n"
-    for tf in timeframes:
-        d = results[tf]
-        if "error" in d:
-            ta_text += f"{tf}: [GEEN DATA]\n"
-            continue
-        trend = "Bullish" if d["ema20"] > d["ema50"] else "Bearish" if d["ema20"] < d["ema50"] else "Neutraal"
-        ta_text += f"{tf}: RSI {d['rsi']} | EMA20: {d['ema20']} | EMA50: {d['ema50']} → **{trend}**\n"
+@tree.command(name="short", description="AI-shortadvies op basis van analyse ID", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(id="Bijv. #A123")
+async def short(interaction: discord.Interaction, id: str):
+    await interaction.response.send_message(f"Mock SHORT-analyse op basis van ID {id}")
 
-    analyse_id = f"A{str(uuid.uuid4())[:4]}"
+@tree.command(name="long", description="AI-longadvies op basis van analyse ID", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(id="Bijv. #A123")
+async def long(interaction: discord.Interaction, id: str):
+    await interaction.response.send_message(f"Mock LONG-analyse op basis van ID {id}")
 
-    # AI-samenvatting
-    try:
-        ai_prompt = f"Geef een korte verwachting op basis van deze gegevens:\n{ta_text}"
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        body = {
-            "model": "deepseek/deepseek-chat-v3-0324:free",
-            "messages": [{"role": "user", "content": ai_prompt}]
-        }
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body)
-            ai_text = resp.json()["choices"][0]["message"]["content"]
-    except Exception as e:
-        logger.warning(f"AI-fout: {e}")
-        ai_text = "*AI-samenvatting niet beschikbaar.*"
+@tree.command(name="accumuleer", description="Mock accumulatie-analyse", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Bijv. FET, KAS...")
+async def accumuleer(interaction: discord.Interaction, coin: str):
+    await interaction.response.send_message(f"Mock DCA-plan voor {coin.upper()} – analyse volgt")
 
-    ta_text += f"\n**AI Samenvatting:**\n{ai_text}\n\nID: `#{analyse_id}`"
-    await interaction.followup.send(ta_text)
+@tree.command(name="alert", description="Stel prijsalert in", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Bijv. BTC", prijs="Bijv. 0.055")
+async def alert(interaction: discord.Interaction, coin: str, prijs: float):
+    await interaction.response.send_message(f"Alert ingesteld voor {coin.upper()} bij prijs {prijs} – (mock)")
+
+@tree.command(name="setexchange", description="Stel je exchange in", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(exchange="Bijv. Binance, Bitvavo...")
+async def setexchange(interaction: discord.Interaction, exchange: str):
+    await interaction.response.send_message(f"Mock: Exchange ingesteld op {exchange}")
+
+@tree.command(name="setfee", description="Stel feepercentage in", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(percentage="Bijv. 0.25")
+async def setfee(interaction: discord.Interaction, percentage: float):
+    await interaction.response.send_message(f"Mock: Fee ingesteld op {percentage}%")
+
+@tree.command(name="vraag", description="Stel een AI-vraag over crypto", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(tekst="Bijv. Is Solana bullish?")
+async def vraag(interaction: discord.Interaction, tekst: str):
+    await interaction.response.send_message(f"AI mockantwoord: interessante vraag – '{tekst}'")
+
+@tree.command(name="leermoment", description="Geef feedback op analyse", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Coin waarop je analyse gaf", resultaat="winst/verlies")
+async def leermoment(interaction: discord.Interaction, coin: str, resultaat: str):
+    await interaction.response.send_message(f"Mock: Analyse van {coin.upper()} = {resultaat.upper()} opgeslagen.")
+
+@tree.command(name="sentiment", description="Mock sentiment rond een coin", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(coin="Bijv. BTC, FET...")
+async def sentiment(interaction: discord.Interaction, coin: str):
+    await interaction.response.send_message(f"Sentiment voor {coin.upper()} = positief (mock)")
+
+@tree.command(name="heatmap", description="Mock heatmap bij sterke marktbeweging", guild=discord.Object(id=GUILD_ID))
+async def heatmap(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock heatmap: BTC & SOL stijgen sterk!")
+
+@tree.command(name="dominantie", description="Mock marktdominantie-analyse", guild=discord.Object(id=GUILD_ID))
+async def dominantie(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: BTC dominantie 53.2%, ETH 17.4%")
+
+@tree.command(name="airdrop", description="Suggesties voor airdrops", guild=discord.Object(id=GUILD_ID))
+async def airdrop(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: Check LayerZero, ZKSync, en Eigenlayer!")
+
+@tree.command(name="brugtip", description="Brugsuggesties voor nieuwe chains", guild=discord.Object(id=GUILD_ID))
+async def brugtip(interaction: discord.Interaction):
+    await interaction.response.send_message("Mock: Brug van Ethereum naar Base via Orbiter.Finance")
 
 # Start de bot
-bot.run(TOKEN)
+async def main():
+    async with bot:
+        await bot.start(TOKEN)
+
+asyncio.run(main())
