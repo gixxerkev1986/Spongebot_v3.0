@@ -45,7 +45,16 @@ status_overzicht = {
     "brugtip": "⚪️ Gepland, bruggen naar layer 2’s",
     "ping": "🟢 Actief",
     "status": "🟢 Overzicht werkend",
-    "api-server": "🟡 Lokale TA-API draait, Binance live binnenkort"
+    "api-server": "🟡 Lokale TA-API draait, Binance live binnenkort",
+    "claimcheck": "⚪️ Gepland, controleer of je airdrop kunt claimen",
+    "walletscan": "⚪️ Gepland, analyseer je wallet op eligibility",
+    "airdrops": "⚪️ Gepland, alternatief overzicht met filters",
+    "accustrategie": "⚪️ Mock: geavanceerde DCA-strategie",
+    "simulate": "⚪️ Mock: trade simulatie met fees en winst",
+    "setbudget": "⚪️ Mock: instellen van DCA-budget per coin",
+    "exitplan": "⚪️ Mock: uitstapstrategie per coin",
+    "whalealert": "⚪️ Mock: melding bij grote transacties",
+    "fibonacci": "⚪️ Mock: fib retracement zones genereren"
 }
 
 @bot.event
@@ -57,16 +66,14 @@ async def on_ready():
     except Exception as e:
         logger.error(f"Fout bij syncen van commands: {e}")
 
-# Commando's
+# Voorbeeldcommando's
 
 @tree.command(name="ping", description="Test of de bot werkt", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
-    logger.info("/ping ontvangen")
     await interaction.response.send_message("Pong!")
 
 @tree.command(name="status", description="Toon de huidige status van Spongebot", guild=discord.Object(id=GUILD_ID))
 async def status(interaction: discord.Interaction):
-    logger.info("/status ontvangen")
     response = "**Spongebot v2.1 Statusoverzicht**\n\n"
     for cmd, status in status_overzicht.items():
         response += f"• `/{cmd}` – {status}\n"
@@ -90,14 +97,12 @@ async def airdrop(interaction: discord.Interaction):
         value=(
             "📅 **Status**: Verwacht in Q2 2025\n"
             "⚙️ **Wat te doen**:\n"
-            "› Gebruik [Stargate](https://stargate.finance/transfer) om ETH/USDT te bridgen\n"
+            "› Gebruik [Stargate](https://stargate.finance/transfer)\n"
             "› Herhaal 1x/week – kleine transacties\n"
             "› Claim OmniNFT’s via [OmniZone](https://omnizone.io)\n"
             "📈 **Kans**: **Zeer hoog**\n"
             "💰 **Inschatting**: €300 – €2.000"
-        ),
-        inline=False
-    )
+        ), inline=False)
 
     embed.add_field(
         name="2. **zkSync (ZKS)**",
@@ -105,61 +110,60 @@ async def airdrop(interaction: discord.Interaction):
             "📅 **Status**: Snapshot nog niet genomen\n"
             "⚙️ **Wat te doen**:\n"
             "› Bridge via [zkSync Portal](https://portal.zksync.io/)\n"
-            "› Swappen op [SyncSwap](https://syncswap.xyz) of [Mute.io](https://app.mute.io)\n"
-            "› Gebruik meerdere dApps voor interactie\n"
+            "› Gebruik [SyncSwap](https://syncswap.xyz) of [Mute.io](https://app.mute.io)\n"
             "📈 **Kans**: **Hoog**\n"
             "💰 **Inschatting**: €150 – €1.200"
-        ),
-        inline=False
-    )
+        ), inline=False)
 
     embed.add_field(
         name="3. **Blast (BLAST)**",
         value=(
-            "📅 **Status**: Puntensysteem loopt\n"
+            "📅 **Status**: Puntensysteem actief\n"
             "⚙️ **Wat te doen**:\n"
             "› Bridge ETH/USDB naar [blast.io](https://blast.io)\n"
             "› Gebruik dApps zoals Pacmoon of Juice\n"
-            "› Verzamel automatisch punten = toekomstige tokens\n"
             "📈 **Kans**: **Zeker** (bevestigd)\n"
-            "💰 **Inschatting**: €250 – €1.000 (afhankelijk van punten)"
-        ),
-        inline=False
-    )
+            "💰 **Inschatting**: €250 – €1.000"
+        ), inline=False)
 
     embed.add_field(
         name="4. **Scroll**",
         value=(
             "📅 **Status**: Mainnet live, snapshot verwacht\n"
             "⚙️ **Wat te doen**:\n"
-            "› Bridge via [scroll.io](https://scroll.io/bridge)\n"
-            "› Swappen op DEX zoals [SyncSwap](https://syncswap.xyz)\n"
-            "› Test andere apps of NFT’s\n"
+            "› Gebruik [scroll.io/bridge](https://scroll.io/bridge)\n"
+            "› Swappen op [SyncSwap](https://syncswap.xyz)\n"
             "📈 **Kans**: **Hoog**\n"
             "💰 **Inschatting**: €100 – €800"
-        ),
-        inline=False
-    )
+        ), inline=False)
 
     embed.add_field(
         name="5. **EigenLayer (restaking)**",
         value=(
             "📅 **Status**: Pre-launch fase\n"
             "⚙️ **Wat te doen**:\n"
-            "› Restake ETH via [KelpDAO](https://app.kelpdao.xyz) of [EtherFi](https://etherfi.com)\n"
-            "› Verdien punten = claimpositie voor token\n"
+            "› Restake via [KelpDAO](https://app.kelpdao.xyz) of [EtherFi](https://etherfi.com)\n"
             "📈 **Kans**: **Zeer hoog**\n"
-            "💰 **Inschatting**: €500 – €2.500 (afhankelijk van inzet)"
-        ),
-        inline=False
-    )
+            "💰 **Inschatting**: €500 – €2.500"
+        ), inline=False)
 
     embed.set_footer(text="Tip: gebruik meerdere wallets voor hogere kans (MetaMask, Rabby, Argent...)")
     await interaction.response.send_message(embed=embed)
 
-@tree.command(name="brugtip", description="Brugsuggesties voor nieuwe chains", guild=discord.Object(id=GUILD_ID))
+@tree.command(name="brugtip", description="Brugsuggestie voor nieuwe chains", guild=discord.Object(id=GUILD_ID))
 async def brugtip(interaction: discord.Interaction):
     await interaction.response.send_message("Mock: Brug van Ethereum naar Base via Orbiter.Finance")
+
+# Mock commands voor roadmap
+mock_commands = [
+    "claimcheck", "walletscan", "airdrops", "accustrategie",
+    "simulate", "setbudget", "exitplan", "whalealert", "fibonacci"
+]
+
+for cmd in mock_commands:
+    @tree.command(name=cmd, description=f"Mock: {cmd} functionaliteit", guild=discord.Object(id=GUILD_ID))
+    async def mock_command(interaction: discord.Interaction, cmd=cmd):
+        await interaction.response.send_message(f"Mock: `{cmd}` is nog in ontwikkeling en wordt later geactiveerd.")
 
 # Start de bot
 async def main():
