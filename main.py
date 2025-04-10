@@ -6,6 +6,7 @@ from discord import app_commands
 from dotenv import load_dotenv
 import asyncio
 import requests
+import httpx
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)8s] %(name)s: %(message)s')
@@ -61,7 +62,35 @@ async def status(interaction: discord.Interaction):
 @tree.command(name="analyse", description="Voer technische analyse uit", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(coin="Bijv. BTC, KAS, FET...")
 async def analyse(interaction: discord.Interaction, coin: str):
-    await interaction.response.send_message(f"Mock analyse voor {coin.upper()}...\n(TA komt eraan!)")
+    await interaction.response.defer()
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(f"http://spongebot.hopto.org:5050/api/crypto/{coin.upper()}/1d")
+            if response.status_code == 200:
+                data = response.json()
+                if not data or "close" not in data:
+                    raise ValueError("Geen geldige TA-data ontvangen.")
+                close = data["close"][-1]
+                rsi = data["rsi"][-1]
+                ema20 = data["ema20"][-1]
+                ema50 = data["ema50"][-1]
+
+                trend = "⬆️ Uptrend" if ema20 > ema50 else "⬇️ Downtrend" if ema20 < ema50 else "➡️ Zijwaarts"
+                advies = "⚠️ RSI signaal: OVERKOCHT" if rsi > 70 else "✅ RSI signaal: OVERSOLD" if rsi < 30 else "Neutral"
+
+                embed = discord.Embed(title=f"Technische Analyse voor {coin.upper()}", color=0x00ffcc)
+                embed.add_field(name="Slotprijs", value=f"${close:.2f}", inline=True)
+                embed.add_field(name="RSI (14)", value=f"{rsi:.2f}", inline=True)
+                embed.add_field(name="Trend", value=trend, inline=False)
+                embed.add_field(name="Advies", value=advies, inline=False)
+                embed.set_footer(text="Bron: Binance API via Spongebot TA-server")
+
+                await interaction.followup.send(embed=embed)
+            else:
+                await interaction.followup.send(f"Er ging iets mis bij het ophalen van data voor {coin.upper()}.")
+    except Exception as e:
+        logger.error(f"Fout bij analyse: {e}")
+        await interaction.followup.send("Fout bij analyse ophalen.")
 
 @tree.command(name="airdrop", description="Live overzicht van potentiële airdrops (DeFiLlama)", guild=discord.Object(id=GUILD_ID))
 async def airdrop(interaction: discord.Interaction):
